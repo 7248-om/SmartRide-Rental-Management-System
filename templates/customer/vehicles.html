@@ -1,0 +1,201 @@
+{% extends "customer/dashboard.html" %}
+
+{% block title %}Browse Vehicles - SmartRide Customer{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="mb-1"><i class="fas fa-car-side"></i> Browse Available Vehicles</h2>
+                    <p class="text-muted mb-0">Find the perfect vehicle for your needs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="vehicleType" class="form-label">Vehicle Type</label>
+                            <select class="form-select" id="vehicleType" name="vehicle_type">
+                                <option value="">All Types</option>
+                                <option value="Car" {{ 'selected' if request.args.get('vehicle_type') == 'Car' }}>Car</option>
+                                <option value="Bus" {{ 'selected' if request.args.get('vehicle_type') == 'Bus' }}>Bus</option>
+                                <option value="Bike" {{ 'selected' if request.args.get('vehicle_type') == 'Bike' }}>Bike</option>
+                                <option value="Scooter" {{ 'selected' if request.args.get('vehicle_type') == 'Scooter' }}>Scooter</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priceRange" class="form-label">Price Range (per day)</label>
+                            <select class="form-select" id="priceRange" name="price_range">
+                                <option value="">Any Price</option>
+                                <option value="0-50" {{ 'selected' if request.args.get('price_range') == '0-50' }}>$0 - $50</option>
+                                <option value="51-100" {{ 'selected' if request.args.get('price_range') == '51-100' }}>$51 - $100</option>
+                                <option value="101-200" {{ 'selected' if request.args.get('price_range') == '101-200' }}>$101 - $200</option>
+                                <option value="201+" {{ 'selected' if request.args.get('price_range') == '201+' }}>$201+</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="year" class="form-label">Year</label>
+                            <select class="form-select" id="year" name="year">
+                                <option value="">Any Year</option>
+                                <option value="2024" {{ 'selected' if request.args.get('year') == '2024' }}>2024</option>
+                                <option value="2023" {{ 'selected' if request.args.get('year') == '2023' }}>2023</option>
+                                <option value="2022" {{ 'selected' if request.args.get('year') == '2022' }}>2022</option>
+                                <option value="2021" {{ 'selected' if request.args.get('year') == '2021' }}>2021</option>
+                                <option value="2020" {{ 'selected' if request.args.get('year') == '2020' }}>2020</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Availability</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="AVAILABLE" selected>Available Only</option>
+                                <option value="" {{ 'selected' if request.args.get('status') == '' }}>All Vehicles</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vehicles Grid -->
+    <div class="row">
+        {% if vehicles %}
+            {% for vehicle in vehicles %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm vehicle-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="badge bg-{{ 'success' if vehicle.status == 'AVAILABLE' else 'warning' if vehicle.status == 'RENTED' else 'danger' }}">
+                            {{ vehicle.status }}
+                        </span>
+                        <small class="text-muted">{{ vehicle.type_name }}</small>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ vehicle.make }} {{ vehicle.model }}</h5>
+                        
+                        <div class="vehicle-details mb-3">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    <br><small>{{ vehicle.year }}</small>
+                                </div>
+                                <div class="col-6">
+                                    <i class="fas fa-tag text-info"></i>
+                                    <br><small>{{ vehicle.plate_no }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="price-section text-center mb-3">
+                            <h4 class="text-primary mb-0">${{ vehicle.rate_per_day }}</h4>
+                            <small class="text-muted">per day</small>
+                        </div>
+                        
+                        {% if vehicle.status == 'AVAILABLE' %}
+                            <div class="d-grid gap-2">
+                                <a href="/customer/booking/new?vehicle_id={{ vehicle.vehicle_id }}" class="btn btn-success">
+                                    <i class="fas fa-calendar-check"></i> Book Now
+                                </a>
+                                <a href="/customer/reservation/new?vehicle_type_id={{ vehicle.type_id }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-bookmark"></i> Reserve Later
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="d-grid">
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-times"></i> Not Available
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-car fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted">No vehicles found</h4>
+                        <p class="text-muted">Try adjusting your filters or check back later for more options.</p>
+                        <a href="/customer/vehicles" class="btn btn-primary">
+                            <i class="fas fa-refresh"></i> Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Vehicle Types Quick Filter -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-filter"></i> Quick Filter by Type</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="?vehicle_type=Car" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-car fa-2x mb-2 d-block"></i>
+                                Cars
+                                <br><small class="text-muted">{{ car_count or 0 }} available</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="?vehicle_type=Bus" class="btn btn-outline-success btn-lg w-100">
+                                <i class="fas fa-bus fa-2x mb-2 d-block"></i>
+                                Buses
+                                <br><small class="text-muted">{{ bus_count or 0 }} available</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="?vehicle_type=Bike" class="btn btn-outline-warning btn-lg w-100">
+                                <i class="fas fa-motorcycle fa-2x mb-2 d-block"></i>
+                                Bikes
+                                <br><small class="text-muted">{{ bike_count or 0 }} available</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="?vehicle_type=Scooter" class="btn btn-outline-info btn-lg w-100">
+                                <i class="fas fa-scooter fa-2x mb-2 d-block"></i>
+                                Scooters
+                                <br><small class="text-muted">{{ scooter_count or 0 }} available</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.vehicle-card {
+    transition: transform 0.2s;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-5px);
+}
+
+.price-section h4 {
+    font-weight: bold;
+}
+</style>
+{% endblock %}
