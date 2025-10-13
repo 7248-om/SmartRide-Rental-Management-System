@@ -16,6 +16,7 @@ import os
 from functools import wraps
 import logging
 from dotenv import load_dotenv
+from admin_config import ADMIN_CREDENTIALS
 
 # Load environment variables
 load_dotenv()
@@ -310,22 +311,47 @@ def admin_login():
         username = request.form['username']
         password = request.form['password']
         
-        # Validate admin credentials
+        # Check against configuration file first
+        if username in ADMIN_CREDENTIALS and ADMIN_CREDENTIALS[username] == password:
+            # Try to find admin in database, create if not exists
+            admin = execute_query(
+                "SELECT StaffID, Name, Role FROM Staff WHERE Name = %s",
+                (username,),
+                fetch_one=True
+            )
+            
+            # If admin not in database, create them
+            if not admin:
+                execute_query(
+                    "INSERT INTO Staff (Name, Role, Email) VALUES (%s, 'Admin', %s)",
+                    (username, f"{username.lower().replace(' ', '')}@smartride.com")
+                )
+                admin = execute_query(
+                    "SELECT StaffID, Name, Role FROM Staff WHERE Name = %s",
+                    (username,),
+                    fetch_one=True
+                )
+            
+            if admin:
+                session['admin_id'] = admin['StaffID']
+                session['admin_name'] = admin['Name']
+                flash(f'Welcome, {admin["Name"]}!', 'success')
+                return redirect(url_for('admin_dashboard'))
+        
+        # Fallback: check database with default password
         admin = execute_query(
             "SELECT StaffID, Name, Role FROM Staff WHERE Name = %s AND Role = 'Admin'",
             (username,),
             fetch_one=True
         )
         
-        # For demo purposes, use simple password check
-        # In production, use hashed passwords
-        if admin and password == 'admin123':  # Change this!
+        if admin and password == 'admin123':
             session['admin_id'] = admin['StaffID']
             session['admin_name'] = admin['Name']
             flash(f'Welcome, {admin["Name"]}!', 'success')
             return redirect(url_for('admin_dashboard'))
-        else:
-            flash('Invalid credentials.', 'error')
+        
+        flash('Invalid credentials.', 'error')
     
     return render_template('admin/login.html')
 
@@ -482,6 +508,90 @@ def admin_vehicles():
                          total_vehicles=total_vehicles,
                          page=page,
                          total_pages=total_pages)
+
+@app.route('/admin/admin-management')
+@admin_required
+def admin_management():
+    """Admin account management"""
+    admins = execute_query(
+        "SELECT StaffID, Name, Role, Email FROM Staff WHERE Role = 'Admin' ORDER BY Name",
+        fetch_all=True
+    ) or []
+    
+    return render_template('admin/admin_management.html', admins=admins)
+
+@app.route('/admin/admin-management/add', methods=['POST'])
+@admin_required
+def add_admin():
+    """Add new admin"""
+    name = request.form['name']
+    email = request.form.get('email', '')
+    phone = request.form.get('phone', '')
+    
+    # Check if admin already exists
+    existing = execute_query(
+        "SELECT StaffID FROM Staff WHERE Name = %s",
+        (name,),
+        fetch_one=True
+    )
+    
+    if existing:
+        flash('Admin with this name already exists.', 'error')
+    else:
+        result = execute_query(
+            "INSERT INTO Staff (Name, Role, Email, Phone) VALUES (%s, 'Admin', %s, %s)",
+            (name, email or None, phone or None)
+        )
+        
+        if result:
+            flash(f'Admin "{name}" added successfully!', 'success')
+        else:
+            flash('Failed to add admin.', 'error')
+    
+    return redirect(url_for('admin_management'))
+
+@app.route('/admin/admin-management/edit', methods=['POST'])
+@admin_required
+def edit_admin():
+    """Edit admin"""
+    admin_id = request.form['admin_id']
+    name = request.form['name']
+    email = request.form.get('email', '')
+    
+    result = execute_query(
+        "UPDATE Staff SET Name = %s, Email = %s WHERE StaffID = %s",
+        (name, email or None, admin_id)
+    )
+    
+    if result:
+        flash('Admin updated successfully!', 'success')
+    else:
+        flash('Failed to update admin.', 'error')
+    
+    return redirect(url_for('admin_management'))
+
+@app.route('/admin/admin-management/delete', methods=['POST'])
+@admin_required
+def delete_admin():
+    """Delete admin"""
+    admin_id = request.form['admin_id']
+    
+    # Don't allow deleting self
+    if int(admin_id) == session.get('admin_id'):
+        flash('You cannot delete your own account.', 'error')
+        return redirect(url_for('admin_management'))
+    
+    result = execute_query(
+        "DELETE FROM Staff WHERE StaffID = %s AND Role = 'Admin'",
+        (admin_id,)
+    )
+    
+    if result:
+        flash('Admin deleted successfully!', 'success')
+    else:
+        flash('Failed to delete admin.', 'error')
+    
+    return redirect(url_for('admin_management'))
 
 @app.route('/admin/logout')
 def admin_logout():
