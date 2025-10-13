@@ -457,57 +457,68 @@ def admin_dashboard():
                          **stats,
                          **type_stats)
 
+@admin_required
 @app.route('/admin/vehicles')
 @admin_required
 def admin_vehicles():
     """Admin vehicle management"""
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("Starting admin_vehicles route")
+
     # Get filter parameters
     vehicle_type = request.args.get('type', '')
     status = request.args.get('status', '')
     search = request.args.get('search', '')
     page = int(request.args.get('page', 1))
     per_page = 20
-    
-    # Build query
+
+    # Build base query
     query = """
         SELECT v.VehicleID, v.Make, v.Model, v.Year, v.PlateNo, v.Status, v.RatePerDay,
-               vt.Name as TypeName
+               vt.Name AS TypeName
         FROM Vehicle v
         JOIN VehicleType vt ON v.TypeID = vt.TypeID
         WHERE 1=1
     """
     params = []
-    
+
     if vehicle_type:
         query += " AND vt.Name = %s"
         params.append(vehicle_type)
-    
+
     if status:
         query += " AND v.Status = %s"
         params.append(status)
-    
+
     if search:
         query += " AND (v.Make LIKE %s OR v.Model LIKE %s OR v.PlateNo LIKE %s)"
         search_param = f"%{search}%"
         params.extend([search_param, search_param, search_param])
-    
-    # Get total count for pagination
-    count_query = query.replace("SELECT v.VehicleID, v.Make, v.Model, v.Year, v.PlateNo, v.Status, v.RatePerDay, vt.Name as TypeName", "SELECT COUNT(*)")
-    total_vehicles = execute_query(count_query, params, fetch_one=True)['COUNT(*)']
-    
-    # Add pagination
+
+    # ✅ Count query with alias
+    count_query = query.replace(
+        "SELECT v.VehicleID, v.Make, v.Model, v.Year, v.PlateNo, v.Status, v.RatePerDay, vt.Name AS TypeName",
+        "SELECT COUNT(*) AS count"
+    )
+
+    count_result = execute_query(count_query, params, fetch_one=True)
+    total_vehicles = count_result['count'] if count_result and 'count' in count_result else 0
+
+    # Pagination
     offset = (page - 1) * per_page
     query += f" ORDER BY v.VehicleID ASC LIMIT {per_page} OFFSET {offset}"
-    
+
     vehicles = execute_query(query, params, fetch_all=True) or []
-    
-    total_pages = (total_vehicles + per_page - 1) // per_page
-    
-    return render_template('admin/vehicles.html',
-                         vehicles=vehicles,
-                         total_vehicles=total_vehicles,
-                         page=page,
-                         total_pages=total_pages)
+    total_pages = (total_vehicles + per_page - 1) // per_page if total_vehicles else 1
+
+    return render_template(
+        'admin/vehicles.html',
+        vehicles=vehicles,
+        total_vehicles=total_vehicles,
+        page=page,
+        total_pages=total_pages
+    )
 
 @app.route('/admin/admin-management')
 @admin_required
@@ -644,6 +655,17 @@ if __name__ == '__main__':
     # Initialize database
     if init_db():
         logger.info("Starting SmartRide Vehicle Rental Management System")
-        app.run(debug=True, host='0.0.0.0', port=5001)
+
+        import socket
+        from werkzeug.serving import run_simple
+
+        # Bind to port 0 → OS picks a free port automatically
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            free_port = s.getsockname()[1]
+
+        logger.info(f"Using available port {free_port}")
+        run_simple('0.0.0.0', free_port, app, use_reloader=True, use_debugger=True)
+
     else:
         logger.error("Failed to initialize database. Please check your database configuration.")
