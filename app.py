@@ -70,23 +70,28 @@ def get_db_connection():
         return None
 
 def execute_query(query, params=None, fetch_one=False, fetch_all=False):
-    """Execute database query safely"""
+    """Execute database query safely and return lowercase dict keys"""
     try:
         conn = get_db_connection()
         if conn is None:
             return None
-            
-        cursor = conn.cursor()
+
+        cursor = conn.cursor(MySQLdb.cursors.DictCursor)  # ✅ use dict cursor
         cursor.execute(query, params or ())
-        
+
+        def normalize_keys(row):
+            return {k.lower(): v for k, v in row.items()} if row else None
+
         if fetch_one:
-            result = cursor.fetchone()
+            row = cursor.fetchone()
+            result = normalize_keys(row)
         elif fetch_all:
-            result = cursor.fetchall()
+            rows = cursor.fetchall()
+            result = [normalize_keys(r) for r in rows]
         else:
             conn.commit()
             result = cursor.rowcount
-            
+
         cursor.close()
         return result
     except Exception as e:
@@ -475,12 +480,20 @@ def admin_vehicles():
 
     # Build base query
     query = """
-        SELECT v.VehicleID, v.Make, v.Model, v.Year, v.PlateNo, v.Status, v.RatePerDay,
-               vt.Name AS TypeName
-        FROM Vehicle v
-        JOIN VehicleType vt ON v.TypeID = vt.TypeID
-        WHERE 1=1
-    """
+                SELECT 
+                    v.VehicleID AS vehicle_id,
+                    v.Make AS make,
+                    v.Model AS model,
+                    v.Year AS year,
+                    v.PlateNo AS plate_no,
+                    v.Status AS status,
+                    v.RatePerDay AS rate_per_day,
+                    vt.Name AS type_name
+                FROM Vehicle v
+                JOIN VehicleType vt ON v.TypeID = vt.TypeID
+                WHERE 1=1
+            """
+
     params = []
 
     if vehicle_type:
@@ -496,11 +509,19 @@ def admin_vehicles():
         search_param = f"%{search}%"
         params.extend([search_param, search_param, search_param])
 
-    # ✅ Count query with alias
     count_query = query.replace(
-        "SELECT v.VehicleID, v.Make, v.Model, v.Year, v.PlateNo, v.Status, v.RatePerDay, vt.Name AS TypeName",
-        "SELECT COUNT(*) AS count"
-    )
+                    """SELECT 
+                        v.VehicleID AS vehicle_id,
+                        v.Make AS make,
+                        v.Model AS model,
+                        v.Year AS year,
+                        v.PlateNo AS plate_no,
+                        v.Status AS status,
+                        v.RatePerDay AS rate_per_day,
+                        vt.Name AS type_name""",
+                    "SELECT COUNT(*) AS count"
+                )
+
 
     count_result = execute_query(count_query, params, fetch_one=True)
     total_vehicles = count_result['count'] if count_result and 'count' in count_result else 0
@@ -611,6 +632,38 @@ def admin_logout():
     session.pop('admin_name', None)
     flash('Admin logged out successfully.', 'info')
     return redirect(url_for('index'))
+# -------------------------------
+# Admin Quick Action Routes
+# -------------------------------
+
+@app.route('/admin/vehicles/add')
+@admin_required
+def admin_add_vehicle():
+    return render_template('admin/vehicle_add.html')
+
+@app.route('/admin/customers/add')
+@admin_required
+def admin_add_customer():
+    return render_template('admin/customer_add.html')
+
+@app.route('/admin/reports/daily')
+@admin_required
+def admin_daily_report():
+    flash("Report generation not implemented yet.", "info")
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/rentals/return')
+@admin_required
+def admin_process_return():
+    flash("Return process not implemented yet.", "info")
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/maintenance')
+@admin_required
+def admin_schedule_maintenance():
+    flash("Maintenance scheduling not implemented yet.", "info")
+    return redirect(url_for('admin_dashboard'))
+
 
 # Error Handlers
 @app.errorhandler(404)
