@@ -273,13 +273,6 @@ This project is developed for academic purposes. Feel free to use it for educati
 
 ## 👨‍💻 Authors
 
-- [Student Name 1] - Development & Database Design
-- [Student Name 2] - Frontend & System Integration
+- Diya Satish Kumar
+- Om Joshi
 
-## 📞 Support
-
-For any questions or issues, please create an issue in the repository or contact the development team.
-
----
-
-**Note**: This system is designed for educational purposes and demonstrates various database concepts and web development practices. For production use, additional security measures and testing would be required.
