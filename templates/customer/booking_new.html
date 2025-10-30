@@ -1,0 +1,93 @@
+{% extends "customer/dashboard.html" %}
+
+{% block title %}New Booking - SmartRide Customer{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="mb-1"><i class="fas fa-calendar-check"></i> Create New Booking</h2>
+                    <p class="text-muted mb-0">Confirm your rental details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Booking Confirmation</h6>
+                </div>
+                <div class="card-body p-5">
+                    {% if vehicle %}
+                    <form method="POST" action="/customer/booking/new">
+                        <input type="hidden" name="vehicle_id" value="{{ vehicle.vehicleid }}">
+                        
+                        <div class="mb-3">
+                            <h5>Vehicle Details</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <strong>Vehicle:</strong>
+                                    <span>{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <strong>Type:</strong>
+                                    <span>{{ vehicle.typename }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <strong>Plate No:</strong>
+                                    <code>{{ vehicle.plateno }}</code>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <strong>Rate:</strong>
+                                    <span class="text-success fw-bold">${{ "%.2f"|format(vehicle.rateperday) }} / day</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3">Rental Period</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">Start Date *</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label">End Date *</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date" required>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i> 
+                            Total price will be calculated upon booking. Payment is due upon vehicle pickup.
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="/customer/vehicles" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Vehicles
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Booking
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning text-center">
+                        <h4>No Vehicle Selected</h4>
+                        <p>Please select a vehicle to book.</p>
+                        <a href="/customer/vehicles" class="btn btn-primary">Browse Vehicles</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

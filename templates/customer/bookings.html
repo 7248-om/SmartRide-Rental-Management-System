@@ -1,0 +1,74 @@
+{% extends "customer/dashboard.html" %}
+
+{% block title %}My Bookings - SmartRide Customer{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="mb-1"><i class="fas fa-calendar-check"></i> My Booking History</h2>
+                    <p class="text-muted mb-0">View all your past and present rentals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Vehicle</th>
+                                    <th>Plate No.</th>
+                                    <th>Start Date</th>
+                                    <th>Due Date</th>
+                                    <th>Return Date</th>
+                                    <th>Total</th>
+                                    <th>Fine</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if bookings %}
+                                    {% for rental in bookings %}
+                                    <tr>
+                                        <td>{{ rental.rentalid }}</td>
+                                        <td>{{ rental.make }} {{ rental.model }} ({{ rental.typename }})</td>
+                                        <td><code>{{ rental.plateno }}</code></td>
+                                        <td>{{ rental.startdate.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ rental.duedate.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ rental.returndate.strftime('%Y-%m-%d') if rental.returndate else 'N/A' }}</td>
+                                        <td>${{ "%.2f"|format(rental.totalamount) }}</td>
+                                        <td>${{ "%.2f"|format(rental.fineamount) }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if rental.status == 'COMPLETED' else 'warning' if rental.status == 'ACTIVE' else 'danger' if rental.status == 'OVERDUE' else 'secondary' }}">
+                                                {{ rental.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-5">
+                                            <i class="fas fa-car fa-3x mb-3"></i>
+                                            <h4>No bookings found</h4>
+                                            <p>You have not rented any vehicles yet.</p>
+                                            <a href="/customer/vehicles" class="btn btn-primary">Browse Vehicles</a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
