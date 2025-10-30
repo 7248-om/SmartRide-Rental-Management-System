@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -18,8 +17,8 @@
                             <a href="/admin/vehicles/add" class="btn btn-success">
                                 <i class="fas fa-plus"></i> Add New Vehicle
                             </a>
-                            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal">
-                                <i class="fas fa-upload"></i> Import Vehicles
+                            <button class="btn btn-outline-secondary" onclick="exportVehicles()">
+                                <i class="fas fa-download"></i> Export
                             </button>
                         </div>
                     </div>
@@ -28,7 +27,6 @@
         </div>
     </div>
 
-    <!-- Filter and Search -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -70,7 +68,6 @@
         </div>
     </div>
 
-    <!-- Vehicles Table -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
@@ -84,9 +81,6 @@
                             <button class="btn btn-outline-secondary btn-sm" onclick="exportVehicles()">
                                 <i class="fas fa-download"></i> Export
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#bulkActionModal">
-                                <i class="fas fa-tasks"></i> Bulk Actions
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -95,9 +89,6 @@
                         <table class="table table-striped table-hover mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>
-                                        <input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes()">
-                                    </th>
                                     <th>ID</th>
                                     <th>Type</th>
                                     <th>Make</th>
@@ -113,20 +104,17 @@
                                 {% if vehicles %}
                                     {% for vehicle in vehicles %}
                                     <tr>
+                                        <td>{{ vehicle.vehicleid }}</td>
                                         <td>
-                                            <input type="checkbox" name="vehicle_ids" value="{{ vehicle.vehicle_id }}" class="vehicle-checkbox">
-                                        </td>
-                                        <td>{{ vehicle.vehicle_id }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ 'primary' if vehicle.type_name == 'Car' else 'success' if vehicle.type_name == 'Bus' else 'warning' if vehicle.type_name == 'Bike' else 'info' }}">
-                                                {{ vehicle.type_name }}
+                                            <span class="badge bg-{{ 'primary' if vehicle.typename == 'Car' else 'success' if vehicle.typename == 'Bus' else 'warning' if vehicle.typename == 'Bike' else 'info' }}">
+                                                {{ vehicle.typename }}
                                             </span>
                                         </td>
                                         <td>{{ vehicle.make }}</td>
                                         <td>{{ vehicle.model }}</td>
                                         <td>{{ vehicle.year }}</td>
-                                        <td><code>{{ vehicle.plate_no }}</code></td>
-                                        <td>${{ vehicle.rate_per_day }}</td>
+                                        <td><code>{{ vehicle.plateno }}</code></td>
+                                        <td>${{ "%.2f"|format(vehicle.rateperday) }}</td>
                                         <td>
                                             <span class="badge bg-{{ 'success' if vehicle.status == 'AVAILABLE' else 'warning' if vehicle.status == 'RENTED' else 'danger' }}">
                                                 {{ vehicle.status }}
@@ -134,18 +122,18 @@
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="/admin/vehicles/{{ vehicle.vehicle_id }}" class="btn btn-outline-info" title="View Details">
+                                                <a href="/admin/vehicles/{{ vehicle.vehicleid }}" class="btn btn-outline-info" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="/admin/vehicles/{{ vehicle.vehicle_id }}/edit" class="btn btn-outline-primary" title="Edit">
+                                                <a href="/admin/vehicles/{{ vehicle.vehicleid }}/edit" class="btn btn-outline-primary" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 {% if vehicle.status == 'AVAILABLE' %}
-                                                <button class="btn btn-outline-warning btn-maintenance" data-vehicle-id="{{ vehicle.vehicle_id }}" title="Maintenance">
+                                                <button class="btn btn-outline-warning btn-maintenance" data-vehicle-id="{{ vehicle.vehicleid }}" title="Maintenance">
                                                     <i class="fas fa-wrench"></i>
                                                 </button>
                                                 {% endif %}
-                                                <button class="btn btn-outline-danger btn-delete" data-vehicle-id="{{ vehicle.vehicle_id }}" data-vehicle-name="{{ vehicle.make }} {{ vehicle.model }}" title="Delete">
+                                                <button class="btn btn-outline-danger btn-delete" data-vehicle-id="{{ vehicle.vehicleid }}" data-vehicle-name="{{ vehicle.make }} {{ vehicle.model }}" title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -167,7 +155,6 @@
                     </div>
                 </div>
                 
-                <!-- Pagination -->
                 {% if vehicles and total_pages > 1 %}
                 <div class="card-footer">
                     <nav aria-label="Vehicle pagination">
@@ -198,7 +185,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -216,7 +202,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form method="POST" style="display: inline;" id="deleteForm">
-                    <input type="hidden" name="_method" value="DELETE">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash"></i> Delete Vehicle
                     </button>
@@ -227,57 +212,18 @@
 </div>
 
 <script>
-function toggleAllCheckboxes() {
-    const selectAll = document.getElementById('selectAll');
-    const checkboxes = document.querySelectorAll('.vehicle-checkbox');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAll.checked;
-    });
-}
-
-function confirmDelete(vehicleId, vehicleName) {
-    document.getElementById('deleteVehicleName').textContent = vehicleName;
-    document.getElementById('deleteForm').action = `/admin/vehicles/${vehicleId}/delete`;
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
-}
-
-function sendToMaintenance(vehicleId) {
-    if (confirm('Send this vehicle to maintenance? It will be marked as unavailable for rental.')) {
-        fetch(`/admin/vehicles/${vehicleId}/maintenance`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating vehicle status.');
-        });
-    }
-}
-
-function exportVehicles() {
-    window.location.href = '/admin/vehicles/export';
-}
-
-// Add event listeners when DOM is loaded
+// Event listeners need to be in the main script.js or here
 document.addEventListener('DOMContentLoaded', function() {
     // Handle delete button clicks
     document.querySelectorAll('.btn-delete').forEach(button => {
         button.addEventListener('click', function() {
             const vehicleId = this.getAttribute('data-vehicle-id');
             const vehicleName = this.getAttribute('data-vehicle-name');
-            confirmDelete(vehicleId, vehicleName);
+            
+            document.getElementById('deleteVehicleName').textContent = vehicleName;
+            document.getElementById('deleteForm').action = `/admin/vehicles/${vehicleId}/delete`;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
         });
     });
     
@@ -285,9 +231,33 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.btn-maintenance').forEach(button => {
         button.addEventListener('click', function() {
             const vehicleId = this.getAttribute('data-vehicle-id');
-            sendToMaintenance(vehicleId);
+            
+            if (confirm('Send this vehicle to maintenance? It will be marked as unavailable for rental.')) {
+                fetch(`/admin/vehicles/${vehicleId}/maintenance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating vehicle status.');
+                });
+            }
         });
     });
 });
+
+function exportVehicles() {
+    window.location.href = '/admin/vehicles/export';
+}
 </script>
 {% endblock %}

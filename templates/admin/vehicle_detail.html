@@ -1,0 +1,123 @@
+{% extends "admin/dashboard.html" %}
+
+{% block title %}Vehicle Details - SmartRide Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1"><i class="fas fa-car-side"></i> Vehicle Details</h2>
+                            <p class="text-muted mb-0">{{ vehicle.make }} {{ vehicle.model }} (ID: {{ vehicle.vehicleid }})</p>
+                        </div>
+                        <div>
+                            <a href="/admin/vehicles/{{ vehicle.vehicleid }}/edit" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Edit Vehicle
+                            </a>
+                            <a href="/admin/vehicles" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Vehicle Information</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Vehicle ID:</strong> {{ vehicle.vehicleid }}
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Type:</strong> {{ vehicle.typename }}
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Make:</strong> {{ vehicle.make }}
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Model:</strong> {{ vehicle.model }}
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Year:</strong> {{ vehicle.year }}
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Plate No:</strong> <code>{{ vehicle.plateno }}</code>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Rate:</strong> ${{ "%.2f"|format(vehicle.rateperday) }} / day
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if vehicle.status == 'AVAILABLE' else 'warning' if vehicle.status == 'RENTED' else 'danger' }}">
+                                {{ vehicle.status }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Rental History</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Rental ID</th>
+                                    <th>Customer</th>
+                                    <th>Start Date</th>
+                                    <th>Due Date</th>
+                                    <th>Return Date</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if rentals %}
+                                    {% for rental in rentals %}
+                                    <tr>
+                                        <td>{{ rental.rentalid }}</td>
+                                        <td>{{ rental.customername }}</td>
+                                        <td>{{ rental.startdate.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ rental.duedate.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ rental.returndate.strftime('%Y-%m-%d') if rental.returndate else 'N/A' }}</td>
+                                        <td>${{ "%.2f"|format(rental.totalamount + rental.fineamount) }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if rental.status == 'COMPLETED' else 'warning' if rental.status == 'ACTIVE' else 'danger' if rental.status == 'OVERDUE' else 'secondary' }}">
+                                                {{ rental.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            No rental history found for this vehicle.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

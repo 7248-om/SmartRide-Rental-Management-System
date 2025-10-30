@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -16,7 +15,6 @@
         </div>
     </div>
     
-    <!-- Filters -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -71,7 +69,6 @@
         </div>
     </div>
     
-    <!-- Vehicles Grid -->
     <div class="row">
         {% if vehicles %}
             {% for vehicle in vehicles %}
@@ -81,7 +78,7 @@
                         <span class="badge bg-{{ 'success' if vehicle.status == 'AVAILABLE' else 'warning' if vehicle.status == 'RENTED' else 'danger' }}">
                             {{ vehicle.status }}
                         </span>
-                        <small class="text-muted">{{ vehicle.type_name }}</small>
+                        <small class="text-muted">{{ vehicle.typename }}</small>
                     </div>
                     
                     <div class="card-body">
@@ -95,23 +92,23 @@
                                 </div>
                                 <div class="col-6">
                                     <i class="fas fa-tag text-info"></i>
-                                    <br><small>{{ vehicle.plate_no }}</small>
+                                    <br><small>{{ vehicle.plateno }}</small>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="price-section text-center mb-3">
-                            <h4 class="text-primary mb-0">${{ vehicle.rate_per_day }}</h4>
+                            <h4 class="text-primary mb-0">${{ "%.2f"|format(vehicle.rateperday) }}</h4>
                             <small class="text-muted">per day</small>
                         </div>
                         
                         {% if vehicle.status == 'AVAILABLE' %}
                             <div class="d-grid gap-2">
-                                <a href="/customer/booking/new?vehicle_id={{ vehicle.vehicle_id }}" class="btn btn-success">
+                                <a href="/customer/booking/new?vehicle_id={{ vehicle.vehicleid }}" class="btn btn-success">
                                     <i class="fas fa-calendar-check"></i> Book Now
                                 </a>
-                                <a href="/customer/reservation/new?vehicle_type_id={{ vehicle.type_id }}" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-bookmark"></i> Reserve Later
+                                <a href="/customer/reservations?type_id_form={{ vehicle.typeid }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-bookmark"></i> Reserve This Type
                                 </a>
                             </div>
                         {% else %}
@@ -141,7 +138,6 @@
         {% endif %}
     </div>
     
-    <!-- Vehicle Types Quick Filter -->
     <div class="row mt-5">
         <div class="col-12">
             <div class="card">
@@ -198,4 +194,5 @@
     font-weight: bold;
 }
 </style>
+
 {% endblock %}

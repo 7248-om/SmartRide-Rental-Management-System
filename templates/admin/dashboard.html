@@ -58,7 +58,6 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-gradient-primary text-white">
@@ -67,7 +66,6 @@
                         <div class="col">
                             <h2 class="mb-1">Admin Dashboard</h2>
                             <p class="mb-0">Welcome back, {{ admin.name if admin else 'Administrator' }}!</p>
-                            <small>Last login: {{ admin.last_login if admin else 'Today' }}</small>
                         </div>
                         <div class="col-auto">
                             <div class="text-center">
@@ -81,7 +79,6 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -130,9 +127,6 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Customers</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_customers or 0 }}</div>
-                            <div class="mt-2 small">
-                                <span class="text-success">+{{ new_customers_month or 0 }} This Month</span>
-                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -162,9 +156,7 @@
         </div>
     </div>
 
-    <!-- Main Content Row -->
     <div class="row">
-        <!-- Recent Rentals -->
         <div class="col-lg-8 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
@@ -184,33 +176,27 @@
                                     <th>Start Date</th>
                                     <th>Due Date</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% if recent_rentals %}
                                     {% for rental in recent_rentals %}
                                     <tr>
-                                        <td>#{{ rental.rental_id }}</td>
-                                        <td>{{ rental.customer_name }}</td>
-                                        <td>{{ rental.vehicle_make }} {{ rental.vehicle_model }}</td>
-                                        <td>{{ rental.start_date }}</td>
-                                        <td>{{ rental.due_date }}</td>
+                                        <td>#{{ rental.rentalid }}</td>
+                                        <td>{{ rental.customername }}</td>
+                                        <td>{{ rental.make }} {{ rental.model }}</td>
+                                        <td>{{ rental.startdate.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ rental.duedate.strftime('%Y-%m-%d') }}</td>
                                         <td>
-                                            <span class="badge bg-{{ 'success' if rental.status == 'ACTIVE' else 'warning' if rental.status == 'OVERDUE' else 'info' }}">
+                                            <span class="badge bg-{{ 'success' if rental.status == 'COMPLETED' else 'warning' if rental.status == 'ACTIVE' else 'danger' if rental.status == 'OVERDUE' else 'secondary' }}">
                                                 {{ rental.status }}
                                             </span>
-                                        </td>
-                                        <td>
-                                            <a href="/admin/rentals/{{ rental.rental_id }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">No recent rentals</td>
+                                        <td colspan="6" class="text-center text-muted">No recent rentals</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -220,33 +206,7 @@
             </div>
         </div>
 
-        <!-- Quick Actions & Alerts -->
         <div class="col-lg-4">
-            <!-- Alerts -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-danger">
-                        <i class="fas fa-exclamation-triangle"></i> Alerts
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% if alerts %}
-                        {% for alert in alerts %}
-                        <div class="alert alert-{{ alert.type }} alert-sm">
-                            <i class="fas {{ alert.icon }}"></i>
-                            <strong>{{ alert.title }}:</strong> {{ alert.message }}
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center text-muted py-3">
-                            <i class="fas fa-check-circle fa-2x mb-2"></i>
-                            <p class="mb-0">No alerts at this time</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
@@ -267,8 +227,8 @@
                         <a href="/admin/customers/add" class="btn btn-info">
                             <i class="fas fa-user-plus"></i> Add Customer
                         </a>
-                        <a href="/admin/reports/daily" class="btn btn-outline-secondary">
-                            <i class="fas fa-file-alt"></i> Generate Daily Report
+                        <a href="/admin/reports" class="btn btn-outline-secondary">
+                            <i class="fas fa-file-alt"></i> Generate Reports
                         </a>
                     </div>
                 </div>
@@ -276,7 +236,6 @@
         </div>
     </div>
 
-    <!-- Vehicle Status Overview -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow">
@@ -325,32 +284,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.bg-gradient-primary {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-}
-
-.border-left-primary {
-    border-left: 0.25rem solid #007bff !important;
-}
-
-.border-left-success {
-    border-left: 0.25rem solid #28a745 !important;
-}
-
-.border-left-info {
-    border-left: 0.25rem solid #17a2b8 !important;
-}
-
-.border-left-warning {
-    border-left: 0.25rem solid #ffc107 !important;
-}
-
-.alert-sm {
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-}
-</style>
 {% endblock %}

@@ -1,0 +1,40 @@
+{% extends "admin/dashboard.html" %}
+
+{% block title %}Process Return - SmartRide Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="mb-1"><i class="fas fa-undo"></i> Process Vehicle Return</h2>
+                    <p class="text-muted mb-0">Find a rental record to process its return</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Find Rental</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> This is a stub page. The backend logic to process returns from this form is not yet implemented in `app.py`.
+                    </div>
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Enter Rental ID or Vehicle Plate No.</label>
+                            <input type="text" class="form-control" placeholder="e.g., 102 or ABC123" disabled>
+                        </div>
+                        <button type="submit" class="btn btn-primary" disabled>Find Rental</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

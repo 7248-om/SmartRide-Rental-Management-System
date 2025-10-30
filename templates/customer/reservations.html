@@ -28,7 +28,7 @@
                             <select class="form-select" id="vehicle_type_id" name="vehicle_type_id" required>
                                 <option value="">Select a type...</option>
                                 {% for vtype in vehicle_types %}
-                                <option value="{{ vtype.typeid }}">{{ vtype.name }}</option>
+                                <option value="{{ vtype.typeid }}" {{ 'selected' if request.args.get('type_id_form')|int == vtype.typeid }}>{{ vtype.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -102,4 +102,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    // This script will auto-select the vehicle type if you clicked "Reserve This Type"
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const vehicleTypeId = urlParams.get('type_id_form');
+        if (vehicleTypeId) {
+            document.getElementById('vehicle_type_id').value = vehicleTypeId;
+        }
+    });
+</script>
 {% endblock %}

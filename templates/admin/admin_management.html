@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -16,13 +15,12 @@
         </div>
     </div>
 
-    <!-- Current Admin Accounts -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-list"></i> Current Admin Accounts
+                        <i class="fas fa-list"></i> Current Admin Accounts (from Database)
                     </h6>
                 </div>
                 <div class="card-body">
@@ -41,16 +39,16 @@
                                 {% if admins %}
                                     {% for admin in admins %}
                                     <tr>
-                                        <td>{{ admin.StaffID }}</td>
-                                        <td>{{ admin.Name }}</td>
-                                        <td>{{ admin.Email or 'Not set' }}</td>
-                                        <td><span class="badge bg-success">{{ admin.Role }}</span></td>
+                                        <td>{{ admin.staffid }}</td>
+                                        <td>{{ admin.name }}</td>
+                                        <td>{{ admin.email or 'Not set' }}</td>
+                                        <td><span class="badge bg-success">{{ admin.role }}</span></td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="editAdmin({{ admin.StaffID }}, '{{ admin.Name }}', '{{ admin.Email }}')">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="editAdmin('{{ admin.staffid }}', '{{ admin.name }}', '{{ admin.email }}')">
                                                 <i class="fas fa-edit"></i> Edit
                                             </button>
-                                            {% if admin.StaffID != session.get('admin_id') %}
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAdmin({{ admin.StaffID }}, '{{ admin.Name }}')">
+                                            {% if admin.staffid != session.get('admin_id') %}
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAdmin('{{ admin.staffid }}', '{{ admin.name }}')">
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
                                             {% endif %}
@@ -59,7 +57,7 @@
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">No admin accounts found</td>
+                                        <td colspan="5" class="text-center text-muted">No admin accounts found in Staff table</td>
                                     </tr>
                                 {% endif %}
                             </tbody>
@@ -70,16 +68,16 @@
         </div>
     </div>
 
-    <!-- Add New Admin -->
     <div class="row">
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-success">
-                        <i class="fas fa-user-plus"></i> Add New Admin
+                        <i class="fas fa-user-plus"></i> Add New Admin (to Database)
                     </h6>
                 </div>
                 <div class="card-body">
+                    <p class="text-muted"><small>This adds a user to the `Staff` table with the 'Admin' role. They can then log in using the default password 'admin123' as per the fallback logic.</small></p>
                     <form method="POST" action="/admin/admin-management/add">
                         <div class="mb-3">
                             <label for="adminName" class="form-label">Admin Name *</label>
@@ -103,17 +101,16 @@
             </div>
         </div>
 
-        <!-- Current Login Credentials -->
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-info">
-                        <i class="fas fa-key"></i> Available Login Credentials
+                        <i class="fas fa-key"></i> Configured Login Credentials
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <strong>Note:</strong> These credentials are defined in <code>admin_config.py</code>
+                        <strong>Note:</strong> These credentials are defined in <code>admin_config.py</code> and take priority.
                     </div>
                     <table class="table table-sm">
                         <thead>
@@ -145,20 +142,12 @@
                             </tr>
                         </tbody>
                     </table>
-                    
-                    <div class="alert alert-warning mt-3">
-                        <small>
-                            <i class="fas fa-info-circle"></i>
-                            To add more credentials, edit the <code>admin_config.py</code> file in your project root.
-                        </small>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Admin Modal -->
 <div class="modal fade" id="editAdminModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -198,7 +187,7 @@ function editAdmin(id, name, email) {
 }
 
 function deleteAdmin(id, name) {
-    if (confirm(`Are you sure you want to delete admin "${name}"?`)) {
+    if (confirm(`Are you sure you want to delete admin "${name}"? This only removes them from the Staff table.`)) {
         // Create form and submit
         const form = document.createElement('form');
         form.method = 'POST';

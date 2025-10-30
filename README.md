@@ -274,5 +274,9 @@ This project is developed for academic purposes. Feel free to use it for educati
 ## 👨‍💻 Authors
 
 - Diya Satish Kumar
+<<<<<<< HEAD
 - Om Joshi
 
+=======
+- Om Joshi
+>>>>>>> 5a4cd9c (booking, profile, password management updated)

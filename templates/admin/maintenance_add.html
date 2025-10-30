@@ -1,0 +1,54 @@
+{% extends "admin/dashboard.html" %}
+
+{% block title %}Schedule Maintenance - SmartRide Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="mb-1"><i class="fas fa-plus-circle"></i> Schedule Maintenance</h2>
+                    <p class="text-muted mb-0">Create a new maintenance record</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Maintenance Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> This is a stub page. The backend logic to add maintenance from this form is not yet implemented in `app.py`.
+                    </div>
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle</label>
+                            <select class="form-select" disabled>
+                                <option>Select Vehicle...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="3" disabled></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cost</label>
+                            <input type="number" class="form-control" disabled>
+                        </div>
+                        <button type="submit" class="btn btn-primary" disabled>Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
